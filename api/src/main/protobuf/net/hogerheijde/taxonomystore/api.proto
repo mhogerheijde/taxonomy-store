@@ -1,0 +1,36 @@
+syntax = "proto3";
+
+package api;
+
+
+option java_multiple_files = true;
+option java_package = "net.hogerheijde.taxonomystore";
+option java_outer_classname = "TaxonomyStore";
+option objc_class_prefix = "HLW";
+
+import "scalapb/scalapb.proto";
+
+option (scalapb.options) = {
+  collection_type: "scala.collection.immutable.IndexedSeq"
+};
+
+service TaxonomyStore {
+  rpc Dts (DtsRequest) returns (DtsReply) {}
+}
+
+// Request the entire DTS for the given entrypoint Set
+message DtsRequest {
+  repeated string entrypoints = 1;
+}
+
+message NamedFile {
+  string fileuri = 1;
+  bytes contents = 2;
+  string mediatype = 3;
+}
+
+// The response message containing the the validation messages
+message DtsReply {
+  repeated NamedFile files = 1;
+}
+
