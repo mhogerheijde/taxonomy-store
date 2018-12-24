@@ -5,7 +5,7 @@
     </layout>
   </appender>
 
-  <logger name="net.hogerheijde.taxonomystore" level="TRACE" />
+  <logger name="net.hogerheijde.taxonomystore" level="DEBUG" />
 
 
 

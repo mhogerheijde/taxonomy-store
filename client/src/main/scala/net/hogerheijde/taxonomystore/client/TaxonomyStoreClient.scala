@@ -1,15 +1,18 @@
 package net.hogerheijde.taxonomystore.client
 
 
-import java.net.URI
 import java.util.concurrent.TimeUnit
 
+import scala.util.Try
+
+import eu.cdevreeze.tqa.docbuilder.jvm.PartialUriResolvers.PartialUriResolver
 import io.grpc.ManagedChannel
-import io.grpc.StatusRuntimeException
 import io.grpc.netty.GrpcSslContexts
 import io.grpc.netty.NettyChannelBuilder
 import io.netty.handler.ssl.SslContext
-import net.hogerheijde.taxonomystore.api.DtsRequest
+import net.hogerheijde.taxonomystore.api
+import net.hogerheijde.taxonomystore.api.Document
+import net.hogerheijde.taxonomystore.api.EntrypointSet
 import net.hogerheijde.taxonomystore.api.TaxonomyStoreGrpc
 import net.hogerheijde.taxonomystore.api.TaxonomyStoreGrpc.TaxonomyStoreBlockingClient
 import org.slf4j.LoggerFactory
@@ -53,16 +56,24 @@ class TaxonomyStoreClient private(
   }
 
 
-  def dts(entrypointSet: Set[URI]): Unit = {
-    LOGGER.info("Will try to get DTS for " + entrypointSet.mkString(", ") + " ...")
-    val request = DtsRequest(entrypointSet.map(_.toString).toIndexedSeq)
-    try {
-      val response = blockingClient.dts(request)
-      LOGGER.info(s"File names (${response.files.length}) are:\n - " + response.files.map(_.fileuri).mkString("\n - "))
-    }
-    catch {
-      case e: StatusRuntimeException =>
-        LOGGER.error("RPC failed:", e)
+  def documentForUri(uri: java.net.URI): Try[Document] = {
+    val r = api.URI(uri.toString)
+    Try { blockingClient.getDocument(r) } // FIXME do error handling
+  }
+
+  def dts(entrypointSet: Set[java.net.URI]): Try[PartialUriResolver] = {
+    LOGGER.debug("Will try to get DTS for " + entrypointSet.mkString(", ") + " ...")
+    val request = EntrypointSet(entrypointSet.map(_.toString).toIndexedSeq)
+    Try {
+      val response = blockingClient.getDts(request)
+      LOGGER.info(s"File names (${response.files.length}) are:\n - " +
+        response.files.map(_.fileuri).take(10).mkString("", "\n - ", "\n ... "))
+
+      val filesByUri = response.files
+        .map(f => (java.net.URI.create(f.fileuri), f))
+        .toMap // Assume no duplicates
+
+      resolver.PartialUriResolvers.memoryBacked(filesByUri)
     }
   }
 }

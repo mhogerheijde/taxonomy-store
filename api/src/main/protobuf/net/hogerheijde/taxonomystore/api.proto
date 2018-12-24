@@ -15,22 +15,29 @@ option (scalapb.options) = {
 };
 
 service TaxonomyStore {
-  rpc Dts (DtsRequest) returns (DtsReply) {}
+  rpc GetDocument (URI) returns (Document) {}
+  rpc GetDts (EntrypointSet) returns (Dts) {}
 }
 
 // Request the entire DTS for the given entrypoint Set
-message DtsRequest {
+message EntrypointSet {
   repeated string entrypoints = 1;
 }
 
-message NamedFile {
+message URI {
+  string uri = 1;
+}
+
+message Document {
   string fileuri = 1;
   bytes contents = 2;
   string mediatype = 3;
 }
 
 // The response message containing the the validation messages
-message DtsReply {
-  repeated NamedFile files = 1;
+message Dts {
+  repeated Document files = 1;
 }
+
+
 

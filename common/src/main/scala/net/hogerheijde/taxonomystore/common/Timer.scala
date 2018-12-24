@@ -1,4 +1,4 @@
-package net.hogerheijde.taxonomystore.server.util
+package net.hogerheijde.taxonomystore.common
 
 import java.time.Duration
 

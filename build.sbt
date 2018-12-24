@@ -9,7 +9,6 @@ ThisBuild / libraryDependencies ++= Seq(
   scalatest % Test,
   scalactic % Test,
 )
-ThisBuild / libraryDependencies ++= logging
 
 // -----------------------------------------------------------------------------
 // Compile & Analysis
@@ -43,6 +42,10 @@ ThisBuild / scalacOptions ++= {
 (ThisBuild / scalastyleConfig in Test) := baseDirectory.value / "scalastyle_config.xml"
 
 
+
+lazy val common = project
+  .in(file("common"))
+
 lazy val api = project
   .in(file("api"))
   .settings(
@@ -55,24 +58,27 @@ lazy val api = project
 
 
 lazy val client = project
-  .dependsOn(api)
+  .dependsOn(api, common)
   .in(file("client"))
   .settings(
     name := "client",
     libraryDependencies ++= grpc,
+    libraryDependencies ++= logging, // FIXME Client should not have logging configured like this
     libraryDependencies ++= Seq(
-      tqa
+      tqa,
     ),
   )
 
 lazy val server = project
-  .dependsOn(api)
+  .dependsOn(api, common)
   .in(file("server"))
   .enablePlugins(JavaAgent)
   .settings(
     name := "server",
     libraryDependencies ++= grpc,
+    libraryDependencies ++= logging,
     libraryDependencies ++= Seq(
-      tqa
+      tqa,
     ),
   )
+
