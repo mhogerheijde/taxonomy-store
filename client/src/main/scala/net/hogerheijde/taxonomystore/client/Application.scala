@@ -19,7 +19,7 @@ import org.slf4j.LoggerFactory
 
 object Application {
 
-  val Logger = LoggerFactory.getLogger(getClass)
+  private val Logger = LoggerFactory.getLogger(getClass)
 
   val processor = new Processor(false)
   val docCacheSize = 10000
@@ -43,12 +43,12 @@ object Application {
         memoryResolver,
       )
     }
-    Logger.info(s"DTS from memory ${taxoFromMem.taxonomyDocs.length}, took ${memDuration}")
+    Logger.info(s"DTS from memory ${taxoFromMem.taxonomyDocs.length}, took $memDuration")
 
     val TimedResult(taxo, duration) = Timer { loadDts(entrypointSet,
       uriResolver,
     ) }
-    Logger.info(s"DTS per file ${taxo.taxonomyDocs.length}, took ${duration}")
+    Logger.info(s"DTS per file ${taxo.taxonomyDocs.length}, took $duration")
 
   }
 
@@ -57,14 +57,12 @@ object Application {
       val partial = client.dts(entrypoints).get
       UriResolvers.fromPartialUriResolversWithoutFallback(IndexedSeq(partial))
     }
-    Logger.info(s"Fetched taxonomy document resolver in ${fetchResolver}")
+    Logger.info(s"Fetched taxonomy document resolver in $fetchResolver")
     memoryResolver
   }
 
 
   def loadDts(entrypointUris: Set[URI], uriResolver: UriResolver): BasicTaxonomy = {
-
-
 
     val docBuilder = new docbuilder.saxon.SaxonDocumentBuilder(
       processor.newDocumentBuilder(),

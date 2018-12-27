@@ -3,12 +3,9 @@ import Dependencies._
 
 ThisBuild / organization := "net.hogerheijde.taxonomy-provider"
 ThisBuild / version      := "0.1.0-SNAPSHOT"
-ThisBuild / scalaVersion := "2.12.7"
+ThisBuild / scalaVersion := "2.12.8"
 ThisBuild / name         := "taxonomy-store"
-ThisBuild / libraryDependencies ++= Seq(
-  scalatest % Test,
-  scalactic % Test,
-)
+ThisBuild / libraryDependencies ++= scalatest
 
 // -----------------------------------------------------------------------------
 // Compile & Analysis
@@ -45,9 +42,11 @@ ThisBuild / scalacOptions ++= {
 
 lazy val common = project
   .in(file("common"))
+  .disablePlugins(AssemblyPlugin)
 
 lazy val api = project
   .in(file("api"))
+  .disablePlugins(AssemblyPlugin)
   .settings(
     name := "api",
     libraryDependencies ++= protobuf,
@@ -59,6 +58,7 @@ lazy val api = project
 
 lazy val client = project
   .dependsOn(api, common)
+  .disablePlugins(AssemblyPlugin)
   .in(file("client"))
   .settings(
     name := "client",
@@ -72,13 +72,30 @@ lazy val client = project
 lazy val server = project
   .dependsOn(api, common)
   .in(file("server"))
-  .enablePlugins(JavaAgent)
-  .settings(
+  .enablePlugins(
+    UniversalPlugin, // FIXME not sure if we need this one explicitly
+    JavaAppPackaging, // Create runnable jar
+    DockerPlugin, // Package runnable jar in Docker image
+  ).settings(
     name := "server",
     libraryDependencies ++= grpc,
     libraryDependencies ++= logging,
     libraryDependencies ++= Seq(
       tqa,
     ),
-  )
 
+    assemblyMergeStrategy in assembly := {
+      case PathList("META-INF", "native", xs @ _*) => MergeStrategy.first
+      case PathList("META-INF", xs @ _*) => MergeStrategy.discard
+      case x =>
+        val oldStrategy = (assemblyMergeStrategy in assembly).value
+        oldStrategy(x)
+    },
+
+    mainClass in assembly := Some("net.hogerheijde.taxonomystore.server.TaxonomyStoreServer"),
+
+    (maintainer in Docker) := "spamfilter@hogerheijde.net",
+    dockerBaseImage := "openjdk:11-jre",
+    dockerExposedPorts := Seq(50051),
+    dockerLabels := Map("0.0.1" -> "0.0.1")
+  )

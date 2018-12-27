@@ -1,7 +1,7 @@
 Taxonomy store
 ==============
 
-This project presumes a basic knowledge about what [taxonmies](https://www.xbrl.org) are.
+This project presumes a basic knowledge about what [taxonomies](https://www.xbrl.org) are.
 
 The Taxonomy-store aims to make a few things possible:
 

@@ -1,11 +1,19 @@
-import sbt.Keys.libraryDependencies
 import sbt._
 
-object Dependencies {
-  lazy val scalatest = "org.scalatest" %% "scalatest" % "3.0.3"
-  lazy val scalactic = "org.scalactic" %% "scalactic" % "3.0.3"
+object Versions {
+  val Scalatest = "3.0.5"
+  val TQA = "0.8.9"
+  val ScalaPB = "0.8.2"
+  val ioGrpcVersion = "1.17.1"
+}
 
-  lazy val tqa = "eu.cdevreeze.tqa" %% "tqa" % "0.8.9"
+object Dependencies {
+  lazy val scalatest = Seq(
+    "org.scalatest" %% "scalatest" % Versions.Scalatest,
+    "org.scalactic" %% "scalactic" % Versions.Scalatest,
+  )
+
+  lazy val tqa = "eu.cdevreeze.tqa" %% "tqa" % Versions.TQA
 
   lazy val logging = Seq(
     "ch.qos.logback" % "logback-core" % "1.2.3",
@@ -19,18 +27,16 @@ object Dependencies {
     "com.typesafe.akka" %% "akka-stream" % "2.5.19",
   )
 
-
-  val ioGrpcVersion = "1.17.1"
   lazy val grpc = Seq(
-    "io.grpc" % "grpc-core" % ioGrpcVersion,
-    "io.grpc" % "grpc-stub" % ioGrpcVersion,
-    "io.grpc" % "grpc-netty" % ioGrpcVersion,
+    "io.grpc" % "grpc-core" % Versions.ioGrpcVersion,
+    "io.grpc" % "grpc-stub" % Versions.ioGrpcVersion,
+    "io.grpc" % "grpc-netty" % Versions.ioGrpcVersion,
     "io.netty" % "netty-tcnative-boringssl-static" % "2.0.20.Final",
   )
 
   lazy val protobuf = Seq(
-    "com.thesamet.scalapb" %% "compilerplugin" % "0.7.4",
-    "com.thesamet.scalapb" %% "scalapb-runtime-grpc" % "0.7.4",
-    "com.thesamet.scalapb" %% "scalapb-runtime" % "0.7.4" % "protobuf",
+    "com.thesamet.scalapb" %% "compilerplugin" % Versions.ScalaPB,
+    "com.thesamet.scalapb" %% "scalapb-runtime-grpc" % Versions.ScalaPB,
+    "com.thesamet.scalapb" %% "scalapb-runtime" % Versions.ScalaPB % "protobuf",
   )
 }
