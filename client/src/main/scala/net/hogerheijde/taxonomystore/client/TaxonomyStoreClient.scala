@@ -66,8 +66,7 @@ class TaxonomyStoreClient private(
     val request = EntrypointSet(entrypointSet.map(_.toString).toIndexedSeq)
     Try {
       val response = blockingClient.getDts(request)
-      LOGGER.info(s"File names (${response.files.length}) are:\n - " +
-        response.files.map(_.fileuri).take(10).mkString("", "\n - ", "\n ... "))
+      LOGGER.debug(s"Fetched ${response.files.length} files.")
 
       val filesByUri = response.files
         .map(f => (java.net.URI.create(f.fileuri), f))

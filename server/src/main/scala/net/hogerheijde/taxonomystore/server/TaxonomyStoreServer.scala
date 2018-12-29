@@ -1,5 +1,6 @@
 package net.hogerheijde.taxonomystore.server
 
+import java.io.InputStream
 import java.net.URI
 import java.util.concurrent.TimeUnit
 
@@ -12,9 +13,11 @@ import com.google.common.cache.LoadingCache
 import io.grpc.Server
 import io.grpc.netty.GrpcSslContexts
 import io.grpc.netty.NettyServerBuilder
+import io.netty.handler.ssl.SslContext
 import io.netty.handler.ssl.SslContextBuilder
 import io.netty.handler.ssl.SslProvider
 import net.hogerheijde.taxonomystore.api.TaxonomyStoreGrpc
+import net.hogerheijde.taxonomystore.common.Files
 import org.slf4j.LoggerFactory
 
 
@@ -24,13 +27,15 @@ object TaxonomyStoreServer {
 
 
   private val dtsCacheSize = 250
-  private val port = 50051
 
   def main(args: Array[String]): Unit = {
-    TaxonomyStoreServer.build(port, ExecutionContext.global, dtsFilenameCache).map { server =>
+    TaxonomyStoreServer.build(
+      Configuration.fromFile,
+      ExecutionContext.global,
+      dtsFilenameCache).map { server =>
       server.start()
       server.blockUntilShutdown(100L, TimeUnit.MINUTES) // scalastyle:ignore magic.number
-    }
+    }.get // throw if something fishy happened!
   }
 
   def dtsFilenameCache: LoadingCache[Set[URI], Set[URI]] = {
@@ -47,15 +52,15 @@ object TaxonomyStoreServer {
   }
 
   def build(
-      port: Int,
+      configuration: Configuration,
       executionContext: ExecutionContext,
       cache: LoadingCache[Set[URI], Set[URI]]
   ): Try[TaxonomyStoreServer] = {
     Try {
       val server = NettyServerBuilder
-        .forPort(port)
+        .forPort(configuration.server.port)
         .addService(TaxonomyStoreGrpc.bindService(new TaxonomyStoreImpl(cache), executionContext))
-        .sslContext(sslContext.build())
+        .sslContext(sslContext(configuration))
         .build
       new TaxonomyStoreServer(server)
     }
@@ -63,13 +68,18 @@ object TaxonomyStoreServer {
 
 
 
-  def sslContext: SslContextBuilder = {
+  def sslContext(config: Configuration): SslContext= {
+
+    val certificate = Files.fromUri(config.server.certificate).getOrElse(
+      throw new RuntimeException(s"Could not open file for ${config.server.certificate}"))
+    val privateKey = Files.fromUri(config.server.privateKey).getOrElse(
+      throw new RuntimeException(s"Could not open file for ${config.server.privateKey}"))
 
     val sslClientContextBuilder: SslContextBuilder = SslContextBuilder.forServer(
-      getClass.getResourceAsStream("/certificates/server.crt"),
-      getClass.getResourceAsStream("/certificates/server.pem"))
+      certificate,
+      privateKey)
 
-    GrpcSslContexts.configure(sslClientContextBuilder, SslProvider.OPENSSL)
+    GrpcSslContexts.configure(sslClientContextBuilder, SslProvider.OPENSSL).build()
   }
 
 

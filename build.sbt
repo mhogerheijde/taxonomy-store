@@ -66,6 +66,7 @@ lazy val client = project
     libraryDependencies ++= logging, // FIXME Client should not have logging configured like this
     libraryDependencies ++= Seq(
       tqa,
+      saxon,
     ),
   )
 
@@ -74,7 +75,7 @@ lazy val server = project
   .in(file("server"))
   .enablePlugins(
     UniversalPlugin, // FIXME not sure if we need this one explicitly
-    JavaAppPackaging, // Create runnable jar
+    JavaAppPackaging, // Creates runnable jar
     DockerPlugin, // Package runnable jar in Docker image
   ).settings(
     name := "server",
@@ -82,6 +83,7 @@ lazy val server = project
     libraryDependencies ++= logging,
     libraryDependencies ++= Seq(
       tqa,
+      typesafeConfig,
     ),
 
     assemblyMergeStrategy in assembly := {

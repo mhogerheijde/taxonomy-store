@@ -14,6 +14,9 @@ object Dependencies {
   )
 
   lazy val tqa = "eu.cdevreeze.tqa" %% "tqa" % Versions.TQA
+  lazy val saxon = "net.sf.saxon" % "Saxon-HE" % "9.8.0-14"
+
+  lazy val typesafeConfig = "com.typesafe" % "config" % "1.3.2"
 
   lazy val logging = Seq(
     "ch.qos.logback" % "logback-core" % "1.2.3",
